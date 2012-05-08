@@ -1,0 +1,56 @@
+<?php
+
+function hosting_firewall_schema() {
+  $schema['hosting_firewall'] = array(
+    'fields' => array(
+      'vid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+ 				'default' => 0,
+			),
+			'nid' => array(
+				'type' => 'int',
+				'unsigned' => TRUE,
+				'not null' => TRUE,
+				'default' => 0,
+			),
+			'hosting_firewall' => array(
+				'type' => 'text',
+				'not null' => TRUE,
+			),
+    ),
+		'indexes' => array(
+			'vid' => array('vid'),
+		),
+  );
+  return $schema;
+}
+
+function hosting_firewall_install() {
+	drupal_install_schema('hosting_firewall');
+}
+function hosting_firewall_uninstall() {
+	drupal_uninstall_schema('hosting_firewall');
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

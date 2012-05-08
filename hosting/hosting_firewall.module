@@ -1,0 +1,95 @@
+<?php
+
+
+function hosting_firewall_form_alter(&$form, $form_state, $form_id) {
+	if ($form_id == 'site_node_form') {
+		$form['hosting_firewall'] = array(
+			'#type' => 'textarea',
+			'#title' => t('Restrict by IP address'),
+			'#description' => t('Enter a list of IP address to restrict access to the site. Enter one address per line. Access will be restricted to only allow clients from the IP addresses listed. Leave this blank to allow access from all.'),
+			'#default_value' => $form['#node']->hosting_firewall ? $form['#node']->hosting_firewall : '',
+		);
+		return $form;
+	}
+}
+
+function hosting_firewall_insert($node) {
+	if (!empty($node->hosting_firewall)) {
+		db_query("INSERT INTO {hosting_firewall} (vid, nid, hosting_firewall) VALUES (%d, %d, '%s')",
+		  $node->vid, $node->nid, $node->hosting_firewall);
+	}
+}
+function hosting_firewall_update($node) {
+	if (FALSE == db_fetch_array(db_query("SELECT hosting_firewall FROM {hosting_firewall} WHERE vid = %d", $node->vid))) {
+		hosting_firewall_insert($node);
+	} else {
+		db_query("UPDATE {hosting_firewall} SET hosting_firewall = '%s' WHERE vid = %d", $node->hosting_firewall, $node->vid);
+	}
+}
+function hosting_firewall_delete($node) {
+	db_query("DELETE FROM {hosting_firewall} WHERE nid = %d", $node->nid);
+}
+function hosting_firewall_delete_revision($node) {
+	db_query("DELETE FROM {hosting_firewall} WHERE vid = %d", $node->vid);
+}
+
+function hosting_firewall_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+	if ($node->type == 'site') {
+		switch($op) {
+			case 'insert':
+				hosting_firewall_insert($node);
+				break;
+			case 'update':
+				hosting_firewall_update($node);
+				break;
+			case 'delete': 
+				hosting_firewall_delete($node);
+				break;
+			case 'delete revision':
+				hosting_firewall_delete_revision($node);
+				break;
+			case 'validate':
+			  if (empty($node->hosting_firewall)) {
+				  return;
+			  } else {
+				  $ips = explode("\n", $node->hosting_firewall);
+				  $errs = array();
+				  foreach ($ips as $ip) {
+					  $ip = trim($ip);
+					  if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+						  $errs[] = $ip;
+					  }
+          }
+ 					if (!empty($errs)) {
+						 form_set_error('hosting_firewall', t('The following IP addresses are invalid:') . '<pre>' . print_r($errs, TRUE) . '</pre>');
+					}
+				  return;
+			  }
+			  break;
+			case 'load':
+				$additions = db_fetch_array(db_query("SELECT hosting_firewall FROM {hosting_firewall} WHERE vid = %d", $node->vid));
+				return $additions;
+				break;
+		}
+	} 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

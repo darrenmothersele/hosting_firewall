@@ -1,0 +1,6 @@
+name = Simple Hosting Firewall
+description = Allow admins to restrict access to sites by IP address.
+package = Hosting
+dependencies[] = hosting_site
+core = 6.x
+
